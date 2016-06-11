@@ -17,7 +17,7 @@ case class Team(teamNumber: Int, car: Car, trackPositionInMetres: Double, curren
 case class RaceConfig(trackLengthInKms: Float, teams: Seq[Team])
 object RaceConfig {
   def apply(trackLengthInKms: Int, noOfTeams: Int, initializeTeam: Int => Team) = {
-    val teams = 1 to noOfTeams map (initializeTeam(_)) sortWith (_.trackPositionInMetres > _.trackPositionInMetres)
+    val teams = 1 to noOfTeams map (initializeTeam(_))// sortWith (_.trackPositionInMetres > _.trackPositionInMetres)
     new RaceConfig(trackLengthInKms, teams)
   }
 }
