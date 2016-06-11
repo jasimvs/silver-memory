@@ -5,19 +5,15 @@ package main.scala.com.github.jasimvs.formula1
  */
 object RaceService {
 
-  def initializeTeam(teamNumber: Int): Team = {
-    Team(teamNumber, Car(teamNumber), calculateStartingPosition(teamNumber))
-  }
+  def initializeTeam(teamNumber: Int): Team = Team(teamNumber, Car(teamNumber), calculateStartingPosition(teamNumber))
 
-  def calculateStartingPosition(teamNumber: Int): Long = {
-    teamNumber * (teamNumber - 1) * -100
-  }
+  def calculateStartingPosition(teamNumber: Int): Long = teamNumber * (teamNumber - 1) * -100
 
-  def calculateStartingPositionRecursive(teamNumber: Int): Long = {
+  def calculateStartingPositionRecursive(teamNumber: Int): Long =
     if (teamNumber == 1) 0 else ((teamNumber - 1) * -200) + calculateStartingPositionRecursive(teamNumber - 1)
-  }
 
-  def allTeamsCompletedRace(raceConfig: RaceConfig): Boolean = !raceConfig.teams.filter(team => !raceCompleted(team, raceConfig.trackLengthInKms)).isEmpty
+  def allTeamsCompletedRace(raceConfig: RaceConfig): Boolean =
+    !raceConfig.teams.filter(team => !raceCompleted(team, raceConfig.trackLengthInKms)).isEmpty
 
   def updateTeams(raceConfig: RaceConfig, timeInSeconds: Int): RaceConfig = {
     val teams = raceConfig.teams.map(team => {
@@ -49,7 +45,7 @@ object RaceService {
       team1.trackPositionInMetres > team2.trackPositionInMetres
   }
 
-  def raceCompleted(team: Team, trackLengthInKms: Float) = team.trackPositionInMetres > trackLengthInKms * 1000
+  def raceCompleted(team: Team, trackLengthInKms: Float) = team.trackPositionInMetres >= trackLengthInKms * 1000
 
   def distanceTravelled(u: Double, a: Int, t: Double, maxV: Double): (Double, Double) = {
     val v = calculateSpeedAfterTime(u, a, t)

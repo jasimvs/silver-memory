@@ -8,6 +8,24 @@ import org.scalatest.FlatSpec
  */
 class RaceServiceTests extends FlatSpec {
 
+  def calculateStartingPosition(teamNumber: Int): Long = teamNumber * (teamNumber - 1) * -100
+
+  "calculateStartingPosition " should "return correct position" in {
+    assert(RaceService.calculateStartingPosition(1) == 0)
+    assert(RaceService.calculateStartingPosition(2) == -200)
+    assert(RaceService.calculateStartingPosition(3) == -600)
+    assert(RaceService.calculateStartingPosition(4) == -1200)
+    assert(RaceService.calculateStartingPosition(5) == -2000)
+  }
+
+  "calculateStartingPositionRecursive " should "return correct position" in {
+    assert(RaceService.calculateStartingPositionRecursive(1) == 0)
+    assert(RaceService.calculateStartingPositionRecursive(2) == -200)
+    assert(RaceService.calculateStartingPositionRecursive(3) == -600)
+    assert(RaceService.calculateStartingPositionRecursive(4) == -1200)
+    assert(RaceService.calculateStartingPositionRecursive(5) == -2000)
+  }
+
   "distanceTravelled " should " return right tuples" in {
     assert(RaceService.distanceTravelled(10, 5, 2, 10) == (20, 10))
     assert(RaceService.distanceTravelled(10, 5, 2, 5) == (10, 5))
