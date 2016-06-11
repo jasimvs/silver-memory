@@ -6,16 +6,16 @@ package main.scala.com.github.jasimvs.formula1
 object Main {
 
   def main(args: Array[String]) {
-    //    println(calculateStartingPosition(4633))
-    //    println(calculateStartingPositionRecursive(4633))
-    val race1 = race(RaceConfig(10, 5, RaceService.initializeTeam))
+    //    println(RaceConfig.calculateStartingPosition(4633))
+    //    println(RaceConfig.calculateStartingPositionRecursive(4633))
+    val race1 = race(RaceConfig(10, 5), new DefaultRaceService)
     println(race1)
   }
 
-  def race(raceConfig: RaceConfig): RaceConfig = {
+  def race(raceConfig: RaceConfig, raceService: RaceService): RaceConfig = {
     var raceConf : RaceConfig = raceConfig
-    while (RaceService.allTeamsCompletedRace(raceConf)) {
-      raceConf = RaceService.updateTeams(raceConf, 2)
+    while (raceService.isAnyTeamYetToCompleteRace(raceConf)) {
+      raceConf = raceService.updateTeams(raceConf, 2)
     }
     raceConf
   }
