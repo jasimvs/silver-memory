@@ -14,13 +14,19 @@ object Car {
 }
 
 case class Team(teamNumber: Int, car: Car, trackPositionInMetres: Double, currentSpeed: Double = 0,
-                raceTime: Double = 0, nitroAvailability: Int = 1)
+                raceTime: Double = 0, nitroAvailability: Int = 1) {
 
-case class RaceConfig(trackLengthInKms: Float, teams: Seq[Team]) {
-
+  def getCurrentSpeedInKmph(): Double = {
+    currentSpeed * 18 / 5
+  }
 }
+
+case class RaceConfig(trackLengthInKms: Float, teams: Seq[Team])
 object RaceConfig {
   def apply(trackLengthInKms: Int, noOfTeams: Int) = {
+    if (trackLengthInKms <= 0 || noOfTeams <= 0) {
+      throw new IllegalArgumentException("Input should be positive numbers")
+    }
     val teams = 1 to noOfTeams map (initializeTeam(_))
     new RaceConfig(trackLengthInKms, teams)
   }

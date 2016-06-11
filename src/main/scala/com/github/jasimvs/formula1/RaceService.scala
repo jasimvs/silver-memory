@@ -6,18 +6,24 @@ import com.github.jasimvs.formula1.StandardFormulas
  * Created by jsulaiman on 6/11/2016.
  */
 trait RaceService {
-  
-  def isAnyTeamYetToCompleteRace(raceConfig: RaceConfig): Boolean
 
-  def updateTeams(raceConfig: RaceConfig, timeInSeconds: Int): RaceConfig
+  def race(raceConfig: RaceConfig): RaceConfig
 }
 
 class DefaultRaceService extends RaceService {
 
-  override def isAnyTeamYetToCompleteRace(raceConfig: RaceConfig): Boolean =
+  override def race(raceConfig: RaceConfig): RaceConfig = {
+    var raceConf : RaceConfig = raceConfig
+    while (isAnyTeamYetToCompleteRace(raceConf)) {
+      raceConf = updateTeams(raceConf, 2)
+    }
+    raceConf
+  }
+
+  def isAnyTeamYetToCompleteRace(raceConfig: RaceConfig): Boolean =
     !raceConfig.teams.filterNot(team => raceCompleted(team, raceConfig.trackLengthInKms)).isEmpty
 
-  override def updateTeams(raceConfig: RaceConfig, timeInSeconds: Int): RaceConfig = {
+  def updateTeams(raceConfig: RaceConfig, timeInSeconds: Int): RaceConfig = {
     val teams = raceConfig.teams.map(team => {
       if (raceCompleted(team, raceConfig.trackLengthInKms)) {
         team
