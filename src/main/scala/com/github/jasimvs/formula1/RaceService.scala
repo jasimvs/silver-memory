@@ -53,7 +53,9 @@ object RaceService {
 
   def distanceTravelled(u: Double, a: Int, t: Double, maxV: Double): (Double, Double) = {
     val v = calculateSpeedAfterTime(u, a, t)
-    if (v > maxV) {
+    if (u >= maxV) {
+      (distanceTravelled(maxV, 0, t), maxV)
+    } else if (v > maxV) {
       val t1 = timeToReachSpeed(u, maxV, a)
       val s1 = distanceTravelled(u, a, t1)
       val s2 = distanceTravelled(maxV, 0, t - t1)
