@@ -1,4 +1,6 @@
-name := "main"
+name := "formula1"
+
+mainClass in Compile := Some("main.scala.com.github.jasimvs.formula1.Main")
 
 version := "1.0"
 
