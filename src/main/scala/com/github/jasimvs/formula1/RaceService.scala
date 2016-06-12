@@ -17,49 +17,65 @@ class DefaultRaceService extends RaceService with LazyLogging{
     var raceConf: RaceConfig = raceConfig
     while (isAnyTeamYetToCompleteRace(raceConf)) {
       raceConf = updateTeams(raceConf, 2)
+      logTeamStatus(raceConf)
     }
     raceConf
+  }
+
+  private def logTeamStatus(raceConfig: RaceConfig) = {
+    raceConfig.teams.map(team => logger.debug(s"Team ${team.teamNumber} # Time: ${team.raceTime} seconds # distance: ${team.trackPositionInMetres}# speed: ${team.getCurrentSpeedInKmph} kmph"))
   }
 
   def isAnyTeamYetToCompleteRace(raceConfig: RaceConfig): Boolean =
     !raceConfig.teams.filterNot(team => raceCompleted(team, raceConfig.trackLengthInKms)).isEmpty
 
-  def updateTeams(raceConfig: RaceConfig, timeInSeconds: Int): RaceConfig = {
+  private def updateTeams(raceConfig: RaceConfig, timeInSeconds: Int): RaceConfig = {
     val teams = raceConfig.teams.map(team => {
       if (raceCompleted(team, raceConfig.trackLengthInKms)) {
         team
       } else {
         val index = raceConfig.teams.indexOf(team)
-        // Assuming hf is needed only if car ahead is within defined limits, ignoring if car behind is within limits
-        val activateHf = (index != 0 &&
-          team.trackPositionInMetres - raceConfig.teams(index - 1).trackPositionInMetres <= 10 &&
-          team.trackPositionInMetres - raceConfig.teams(index - 1).trackPositionInMetres >= -10)
-        val activateNitro = (index + 1 == (raceConfig.teams.size))
-        logger.debug(s"Updating team ${team.teamNumber} at position ${index + 1} with HF=$activateHf and Nitro=$activateNitro ")
-        if (activateHf) logger.debug(s"${team.trackPositionInMetres} - ${raceConfig.teams(index - 1).trackPositionInMetres} <= 10?")
-        updateTeam(team, timeInSeconds, activateHf, activateNitro)
+        val lastPos = (index + 1 == raceConfig.teams.size)
+        val activateHf = shouldActivateHf(raceConfig.teams, team, index)
+        logger.debug(s"Updating team ${team.teamNumber} at position ${index + 1} with HF=$activateHf and last position=$lastPos ")
+        updateTeam(team, timeInSeconds, activateHf, lastPos)
       }
     })
     raceConfig.copy(teams = teams.sortWith(teamSortAlgorithm(_, _, raceConfig.trackLengthInKms)))
   }
 
-  private def updateTeam(team: Team, timeInSeconds: Int, activateHf: Boolean, activateNitro: Boolean): Team = {
-    val nitroFactor = if (activateNitro && team.nitroAvailability > 0) team.car.nitroPower else 1
+  def shouldActivateHf(teams: Seq[Team], team: Team, index: Int): Boolean = {
+    val index = teams.indexOf(team)
+    val carAheadIsTooClose = (index > 0 && team.trackPositionInMetres - teams(index - 1).trackPositionInMetres <= 10
+      && team.trackPositionInMetres - teams(index - 1).trackPositionInMetres >= -10)
+    val carBehindIsTooClose = (index < teams.size - 1 && team.trackPositionInMetres - teams(index + 1).trackPositionInMetres >= -10
+      && team.trackPositionInMetres - teams(index + 1).trackPositionInMetres <= 10)
+    if (carAheadIsTooClose)
+      logger.debug(s"${team.trackPositionInMetres} - ${teams(index - 1).trackPositionInMetres} <= +/-10")
+    if (carBehindIsTooClose)
+      logger.debug(s"${team.trackPositionInMetres} - ${teams(index + 1).trackPositionInMetres} <= +/-10")
+    carAheadIsTooClose || carBehindIsTooClose
+  }
+
+  private def updateTeam(team: Team, timeInSeconds: Int, activateHf: Boolean, lastPos: Boolean): Team = {
+    val activateNitro: Boolean = lastPos && team.nitroAvailability > 0 && team.currentSpeed > 0
+    val nitroFactor = if (activateNitro) team.car.nitroPower else 1
     val hfFactor = if (activateHf) team.car.handlingFactor else 1
     val distanceSpeedTuple = calculateDistanceTravelled(team.currentSpeed * nitroFactor * hfFactor,
       team.car.accelerationInMetresPerSecondSquare, timeInSeconds, team.car.topSpeedInMetresPerSecond)
 
-    if (activateNitro && team.nitroAvailability > 0)
+    if (activateNitro) {
+      logger.debug("Activated Nitro")
       team.copy(trackPositionInMetres = team.trackPositionInMetres + distanceSpeedTuple._1,
         currentSpeed = distanceSpeedTuple._2, raceTime = team.raceTime + timeInSeconds,
         nitroAvailability = team.nitroAvailability - 1)
-    else {
+    } else {
       team.copy(trackPositionInMetres = team.trackPositionInMetres + distanceSpeedTuple._1,
         currentSpeed = distanceSpeedTuple._2, raceTime = team.raceTime + timeInSeconds)
     }
   }
 
-  private def teamSortAlgorithm(team1: Team, team2: Team, trackLengthInKms: Float): Boolean = {
+  def teamSortAlgorithm(team1: Team, team2: Team, trackLengthInKms: Float): Boolean = {
     val team1Completed = raceCompleted(team1, trackLengthInKms)
     val team2Completed = raceCompleted(team2, trackLengthInKms)
 
@@ -73,7 +89,7 @@ class DefaultRaceService extends RaceService with LazyLogging{
       team1.trackPositionInMetres > team2.trackPositionInMetres
   }
 
-  private def raceCompleted(team: Team, trackLengthInKms: Float) = team.trackPositionInMetres >= trackLengthInKms * 1000
+  def raceCompleted(team: Team, trackLengthInKms: Float) = team.trackPositionInMetres >= trackLengthInKms * 1000
 
   def calculateDistanceTravelled(u: Double, a: Int, t: Double, maxV: Double): (Double, Double) = {
     val v = StandardFormulas.calculateSpeedAfterTime(u, a, t)
