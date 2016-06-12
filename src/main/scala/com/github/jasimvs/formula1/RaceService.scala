@@ -1,6 +1,7 @@
 package main.scala.com.github.jasimvs.formula1
 
 import com.github.jasimvs.formula1.StandardFormulas
+import com.typesafe.scalalogging.LazyLogging
 
 /**
  * Created by jsulaiman on 6/11/2016.
@@ -10,10 +11,10 @@ trait RaceService {
   def race(raceConfig: RaceConfig): RaceConfig
 }
 
-class DefaultRaceService extends RaceService {
+class DefaultRaceService extends RaceService with LazyLogging{
 
   override def race(raceConfig: RaceConfig): RaceConfig = {
-    var raceConf : RaceConfig = raceConfig
+    var raceConf: RaceConfig = raceConfig
     while (isAnyTeamYetToCompleteRace(raceConf)) {
       raceConf = updateTeams(raceConf, 2)
     }
@@ -30,8 +31,12 @@ class DefaultRaceService extends RaceService {
       } else {
         val index = raceConfig.teams.indexOf(team)
         // Assuming hf is needed only if car ahead is within defined limits, ignoring if car behind is within limits
-        val activateHf = (index != 0 && team.trackPositionInMetres - raceConfig.teams(index - 1).trackPositionInMetres <= 10)
+        val activateHf = (index != 0 &&
+          team.trackPositionInMetres - raceConfig.teams(index - 1).trackPositionInMetres <= 10 &&
+          team.trackPositionInMetres - raceConfig.teams(index - 1).trackPositionInMetres >= -10)
         val activateNitro = (index + 1 == (raceConfig.teams.size))
+        logger.debug(s"Updating team ${team.teamNumber} at position ${index + 1} with HF=$activateHf and Nitro=$activateNitro ")
+        if (activateHf) logger.debug(s"${team.trackPositionInMetres} - ${raceConfig.teams(index - 1).trackPositionInMetres} <= 10?")
         updateTeam(team, timeInSeconds, activateHf, activateNitro)
       }
     })
@@ -47,7 +52,7 @@ class DefaultRaceService extends RaceService {
     if (activateNitro && team.nitroAvailability > 0)
       team.copy(trackPositionInMetres = team.trackPositionInMetres + distanceSpeedTuple._1,
         currentSpeed = distanceSpeedTuple._2, raceTime = team.raceTime + timeInSeconds,
-        nitroAvailability = team.nitroAvailability -1)
+        nitroAvailability = team.nitroAvailability - 1)
     else {
       team.copy(trackPositionInMetres = team.trackPositionInMetres + distanceSpeedTuple._1,
         currentSpeed = distanceSpeedTuple._2, raceTime = team.raceTime + timeInSeconds)

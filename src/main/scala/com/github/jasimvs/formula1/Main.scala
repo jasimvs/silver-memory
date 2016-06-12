@@ -1,5 +1,7 @@
 package main.scala.com.github.jasimvs.formula1
 
+import java.io.EOFException
+
 /**
  * Created by jsulaiman on 6/10/2016.
  */
@@ -9,7 +11,7 @@ object Main {
     //    println(RaceConfig.calculateStartingPosition(4633))
     //    println(RaceConfig.calculateStartingPositionRecursive(4633))
     println("Welcome to Formula 1 racer!")
-    println("Once you enter the track length and number of teams, we will declare the winner! Enter 0 to exit.")
+    println("Once you enter the track length and number of teams, we will declare the winner! To exit, press enter.")
     var flag = true;
     while (flag) {
       val raceService: RaceService = new DefaultRaceService()
@@ -22,15 +24,16 @@ object Main {
           val race1 = raceService.race(RaceConfig(trackLength, noOfTeams))
           printResult(race1)
         } else {
-          println("Exiting...")
           flag = false
         }
       } catch {
         case nfe: NumberFormatException =>
-          println("Exiting...")
+          flag = false
+        case eof: EOFException =>
           flag = false
       }
     }
+    println("Exiting...")
   }
 
   def printResult(raceConfig: RaceConfig) = {
