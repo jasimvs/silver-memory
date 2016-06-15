@@ -11,7 +11,7 @@ trait RaceService {
   def race(raceConfig: RaceConfig): RaceConfig
 }
 
-class DefaultRaceService extends RaceService with LazyLogging{
+class DefaultRaceService extends RaceService with LazyLogging {
 
   override def race(raceConfig: RaceConfig): RaceConfig = {
     var raceConf: RaceConfig = raceConfig
@@ -30,17 +30,17 @@ class DefaultRaceService extends RaceService with LazyLogging{
     !raceConfig.teams.filterNot(team => raceCompleted(team, raceConfig.trackLengthInKms)).isEmpty
 
   private def updateTeams(raceConfig: RaceConfig, timeInSeconds: Int): RaceConfig = {
-    val teams = raceConfig.teams.map(team => {
+    val teams = raceConfig.teams.map(team =>
       if (raceCompleted(team, raceConfig.trackLengthInKms)) {
         team
       } else {
         val index = raceConfig.teams.indexOf(team)
-        val lastPos = (index + 1 == raceConfig.teams.size)
+        val isLastPos = (index + 1 == raceConfig.teams.size)
         val activateHf = shouldActivateHf(raceConfig.teams, team, index)
-        logger.debug(s"Updating team ${team.teamNumber} at position ${index + 1} with HF=$activateHf and last position=$lastPos ")
-        updateTeam(team, timeInSeconds, activateHf, lastPos)
+        logger.debug(s"Updating team ${team.teamNumber} at position ${index + 1} with HF=$activateHf and last position=$isLastPos ")
+        updateTeam(team, timeInSeconds, activateHf, isLastPos)
       }
-    })
+    )
     raceConfig.copy(teams = teams.sortWith(teamSortAlgorithm(_, _, raceConfig.trackLengthInKms)))
   }
 

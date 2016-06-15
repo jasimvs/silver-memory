@@ -18,13 +18,16 @@ object Main {
       try {
         println("Please enter track length (in kms): ")
         val trackLength = scala.io.StdIn.readInt()
+        println(trackLength)
         println("Please enter number of teams: ")
         val noOfTeams = scala.io.StdIn.readInt()
+        println(noOfTeams)
         if (trackLength > 0 && noOfTeams > 0) {
           val race1 = raceService.race(RaceConfig(trackLength, noOfTeams))
           printResult(race1)
         } else {
-          flag = false
+          //flag = false
+          println("Only positive numbers are valid.")
         }
       } catch {
         case nfe: NumberFormatException =>

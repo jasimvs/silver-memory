@@ -6,7 +6,7 @@ import org.scalatest.FlatSpec
 /**
  * Created by jsulaiman on 6/11/2016.
  */
-class RaceServiceTests extends FlatSpec {
+class DefaultRaceServiceTests extends FlatSpec {
 
   val raceService = new DefaultRaceService
 

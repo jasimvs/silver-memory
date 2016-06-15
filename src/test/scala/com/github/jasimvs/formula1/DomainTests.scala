@@ -20,6 +20,15 @@ class DomainTests extends FlatSpec {
     assert(RaceConfig(5, 5) == new RaceConfig(5, teams))
   }
 
+  "RaceConfig " should " throw exception if any of the params is 0" in {
+    intercept[IllegalArgumentException] {
+      RaceConfig(0, 5)
+    }
+    intercept[IllegalArgumentException] {
+      RaceConfig(5, 0)
+    }
+  }
+
   "calculateStartingPosition " should "return correct position" in {
     assert(RaceConfig.calculateStartingPosition(1) == 0)
     assert(RaceConfig.calculateStartingPosition(2) == -200)
